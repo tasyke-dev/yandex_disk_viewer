@@ -2,19 +2,34 @@
 
 {% block content %}
 <h2>Список файлов</h2>
-{% if error %}
-<p>{{ error }}</p>
-{% else %}
-<ul>
-    {% for item in items %}
-    <li>
-        {{ item.name }}
-        {% if item.type == "file" %}
-        <a href="{{ url_for('download_file', public_key=public_key, file_path=item.path) }}">Скачать</a>
-        {% endif %}
-    </li>
-    {% endfor %}
-</ul>
-{% endif %}
+
+<form method="GET" action="{{ url_for('view_files') }}">
+    <input type="hidden" name="public_key" value="{{ public_key }}">
+    <label for="file_type">Фильтровать по типу:</label>
+    <select id="file_type" name="file_type">
+        <option value="">Все файлы</option>
+        <option value="image/">Изображения</option>
+        <option value="application/">Документы</option>
+        <option value="video/">Видео</option>
+    </select>
+    <button type="submit">Применить</button>
+</form>
+
+<form method="POST" action="{{ url_for('download_all') }}">
+    <input type="hidden" name="public_key" value="{{ public_key }}">
+    <ul>
+        {% for item in items %}
+        <li>
+            <input type="checkbox" name="selected_files" value="{{ item.path }}">
+            {{ item.name }}
+            {% if item.type == "file" %}
+            <a href="{{ url_for('download_file', public_key=public_key, file_path=item.path) }}">Скачать</a>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+    <button type="submit">Скачать выбранные</button>
+</form>
+
 <a href="/">Назад</a>
 {% endblock %}
