@@ -3,10 +3,21 @@ import requests
 from io import BytesIO
 from zipfile import ZipFile
 import os
+from functools import lru_cache
 
 app = Flask(__name__)
 
 YANDEX_API_BASE_URL = "https://cloud-api.yandex.net/v1/disk/public/resources"
+
+@lru_cache(maxsize=128)
+def get_files_from_yandex(public_key):
+    params = {"public_key": public_key}
+    response = requests.get(YANDEX_API_BASE_URL, params=params)
+    
+    if response.status_code == 200:
+        data = response.json()
+        return data.get("_embedded", {}).get("items", [])
+    return []
 
 def get_download_link(public_key, file_path):
     params = {"public_key": public_key, "path": file_path}
@@ -31,15 +42,11 @@ def view_files():
     if not public_key:
         return redirect(url_for("index"))
 
-    # Запрос к API Яндекс.Диска
-    params = {"public_key": public_key}
-    response = requests.get(YANDEX_API_BASE_URL, params=params)
-    if response.status_code != 200:
+    items = get_files_from_yandex(public_key)
+
+    if not items:
         return render_template("files.html", error="Не удалось получить данные с Яндекс.Диска")
 
-    data = response.json()
-    items = data.get("_embedded", {}).get("items", [])
-    
     if file_type:
         items = [item for item in items if item.get("mime_type", "").startswith(file_type)]
 
@@ -68,7 +75,7 @@ def download_file():
 @app.route("/download_all", methods=["POST"])
 def download_all():
     public_key = request.form.get("public_key")
-    selected_files = request.form.getlist("selected_files") 
+    selected_files = request.form.getlist("selected_files")
 
     if not public_key or not selected_files:
         return "Неверный запрос", 400
@@ -85,7 +92,7 @@ def download_all():
 
     with open(zip_filename, "rb") as f:
         file_data = f.read()
-    os.remove(zip_filename) 
+    os.remove(zip_filename)
     return Response(
         file_data,
         headers={
@@ -93,3 +100,6 @@ def download_all():
             "Content-Type": "application/zip",
         },
     )
+
+if __name__ == "__main__":
+    app.run(debug=True)
