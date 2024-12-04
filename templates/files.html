@@ -8,9 +8,9 @@
 <ul>
     {% for item in items %}
     <li>
-        {{ item.name }} 
+        {{ item.name }}
         {% if item.type == "file" %}
-        <a href="{{ item.file }}" download>Скачать</a>
+        <a href="{{ url_for('download_file', public_key=public_key, file_path=item.path) }}">Скачать</a>
         {% endif %}
     </li>
     {% endfor %}
