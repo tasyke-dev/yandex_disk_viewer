@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block content %}
+<form method="POST" action="/">
+    <label for="public_key">Введите публичную ссылку (public_key):</label>
+    <input type="text" id="public_key" name="public_key" required>
+    <button type="submit">Просмотреть файлы</button>
+</form>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Список файлов</h2>
+{% if error %}
+<p>{{ error }}</p>
+{% else %}
+<ul>
+    {% for item in items %}
+    <li>
+        {{ item.name }} 
+        {% if item.type == "file" %}
+        <a href="{{ item.file }}" download>Скачать</a>
+        {% endif %}
+    </li>
+    {% endfor %}
+</ul>
+{% endif %}
+<a href="/">Назад</a>
+{% endblock %}
