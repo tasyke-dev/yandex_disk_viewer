@@ -3,9 +3,14 @@
 {% block content %}
 <h2>Список файлов</h2>
 
+<!-- Форма для фильтрации файлов по типу -->
 <form method="GET" action="{{ url_for('view_files') }}">
+    <!-- Публичный ключ для доступа к файлам -->
     <input type="hidden" name="public_key" value="{{ public_key }}">
+    <!-- Путь к папке для навигации -->
     <input type="hidden" name="folder_path" value="{{ folder_path }}">
+    
+    <!-- Выбор типа файлов для фильтрации -->
     <label for="file_type">Фильтровать по типу:</label>
     <select id="file_type" name="file_type">
         <option value="">Все файлы</option>
@@ -17,7 +22,9 @@
     <button type="submit">Применить</button>
 </form>
 
+<!-- Форма для скачивания выбранных файлов -->
 <form method="POST" action="{{ url_for('download_all') }}">
+    <!-- Публичный ключ и путь к папке передаются в скрытых полях -->
     <input type="hidden" name="public_key" value="{{ public_key }}">
     <input type="hidden" name="folder_path" value="{{ folder_path }}">
     
@@ -25,24 +32,37 @@
         {% if items %}
             {% for item in items %}
             <li>
-                <input type="checkbox" name="selected_files" value="{{ item.path }}{% if item.type == 'dir' %}/{% endif %}">
-                {{ item.name }}
-                
-                {% if item.type == "file" %}
-                    <a href="{{ url_for('download_file', public_key=public_key, file_path=item.path) }}">Скачать</a>
-                {% elif item.type == "dir" %}
-                    <a href="{{ url_for('view_files', public_key=public_key, folder_path=item.path) }}">Открыть</a>
-                {% endif %}
+                <!-- Элементы списка с чекбоксами для выбора файлов -->
+                <div class="left">
+                    <input type="checkbox" name="selected_files" value="{{ item.path }}{% if item.type == 'dir' %}/{% endif %}">
+                    <span>{{ item.name }}</span>
+                </div>
+
+                <div class="right">
+                    {% if item.type == "file" %}
+                        <!-- Ссылка для скачивания файла -->
+                        <a href="{{ url_for('download_file', public_key=public_key, file_path=item.path) }}">
+                            <i class="fas fa-download" title="Скачать"></i>
+                        </a>
+                    {% elif item.type == "dir" %}
+                        <!-- Ссылка для открытия папки -->
+                        <a href="{{ url_for('view_files', public_key=public_key, folder_path=item.path) }}">
+                            <i class="fas fa-folder-open" title="Открыть"></i>
+                        </a>
+                    {% endif %}
+                </div>
             </li>
             {% endfor %}
         {% else %}
             <p>Папка пуста или данные отсутствуют.</p>
         {% endif %}
     </ul>
-    
+
+    <!-- Кнопка для скачивания выбранных файлов -->
     <button type="submit">Скачать выбранное</button>
 </form>
 
+<!-- Ссылка для возвращения назад -->
 {% if folder_path %}
     <a href="{{ url_for('view_files', public_key=public_key, folder_path='') }}">Назад</a>
 {% else %}
