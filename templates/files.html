@@ -5,31 +5,48 @@
 
 <form method="GET" action="{{ url_for('view_files') }}">
     <input type="hidden" name="public_key" value="{{ public_key }}">
+    <input type="hidden" name="folder_path" value="{{ folder_path }}">
     <label for="file_type">Фильтровать по типу:</label>
     <select id="file_type" name="file_type">
         <option value="">Все файлы</option>
-        <option value="image/">Изображения</option>
-        <option value="application/">Документы</option>
-        <option value="video/">Видео</option>
+        <option value="image/" {% if file_type == 'image/' %}selected{% endif %}>Изображения</option>
+        <option value="application/" {% if file_type == 'application/' %}selected{% endif %}>Документы</option>
+        <option value="video/" {% if file_type == 'video/' %}selected{% endif %}>Видео</option>
+        <option value="directory" {% if file_type == 'directory' %}selected{% endif %}>Папки</option>
     </select>
     <button type="submit">Применить</button>
 </form>
 
 <form method="POST" action="{{ url_for('download_all') }}">
     <input type="hidden" name="public_key" value="{{ public_key }}">
+    <input type="hidden" name="folder_path" value="{{ folder_path }}">
+    
     <ul>
-        {% for item in items %}
-        <li>
-            <input type="checkbox" name="selected_files" value="{{ item.path }}">
-            {{ item.name }}
-            {% if item.type == "file" %}
-            <a href="{{ url_for('download_file', public_key=public_key, file_path=item.path) }}">Скачать</a>
-            {% endif %}
-        </li>
-        {% endfor %}
+        {% if items %}
+            {% for item in items %}
+            <li>
+                <input type="checkbox" name="selected_files" value="{{ item.path }}{% if item.type == 'dir' %}/{% endif %}">
+                {{ item.name }}
+                
+                {% if item.type == "file" %}
+                    <a href="{{ url_for('download_file', public_key=public_key, file_path=item.path) }}">Скачать</a>
+                {% elif item.type == "dir" %}
+                    <a href="{{ url_for('view_files', public_key=public_key, folder_path=item.path) }}">Открыть</a>
+                {% endif %}
+            </li>
+            {% endfor %}
+        {% else %}
+            <p>Папка пуста или данные отсутствуют.</p>
+        {% endif %}
     </ul>
-    <button type="submit">Скачать выбранные</button>
+    
+    <button type="submit">Скачать выбранное</button>
 </form>
 
-<a href="/">Назад</a>
+{% if folder_path %}
+    <a href="{{ url_for('view_files', public_key=public_key, folder_path='') }}">Назад</a>
+{% else %}
+    <a href="{{ url_for('index') }}">Назад на главную</a>
+{% endif %}
+
 {% endblock %}
